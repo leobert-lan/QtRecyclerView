@@ -13,6 +13,11 @@
  */
 class LinearLayoutManager : public AbstractLayoutManager {
 public:
+    explicit LinearLayoutManager()
+        : container(nullptr)
+    {
+    }
+
     void setViewportSize(const QSize& size) override { m_viewportSize = size; }
 
     void setContainer(QWidget* widget) override { container = widget; }
@@ -20,7 +25,7 @@ public:
     QWidget* itemParent() override { return container; }
 
     QPair<int, int> computeVisibleRange(int scrollY) override;
-    void prepareLayoutIfNeeded(RecyclerAdapter<QVariant>* adapter, QWidget* itemParent, int viewportHeight);
+    void prepareLayoutIfNeeded(RecyclerAdapter<QVariant>* adapter, QWidget* itemParent, int viewportHeight) override;
 
     void addViewHolder(ViewHolder* holder, int position) override;
 
@@ -28,9 +33,11 @@ public:
 
     void layout() override;
 
+    void makesureLayout(const int& position) override;
+
 private:
     QSize m_viewportSize;
-    QWidget* container = nullptr;
+    QWidget* container;
 
     QMap<int, ViewHolder*> m_attachedViewHolders;
     QVector<QRect> m_itemRects;

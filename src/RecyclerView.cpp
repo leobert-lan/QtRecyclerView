@@ -12,6 +12,7 @@ RecyclerView::RecyclerView(QWidget* parent)
     contentWidget->setMinimumHeight(0);
     contentWidget->setLayout(new QVBoxLayout());
     contentWidget->layout()->setContentsMargins(0, 0, 0, 0);
+    // contentWidget->layout()->setMaximumSize()
 }
 
 void RecyclerView::setAdapter(RecyclerAdapter<QVariant>* adapter)
@@ -46,14 +47,26 @@ void RecyclerView::updateVisibleItems()
     if (!m_adapter || !m_layoutManager)
         return;
 
-    QSize viewSize = viewport()->size();
-    int scrollY = verticalScrollBar()->value();
-    m_layoutManager->setViewportSize(viewSize);
-    m_layoutManager->prepareLayoutIfNeeded(m_adapter, m_layoutManager->itemParent(), viewport()->height());
+    const QSize viewSize = viewport()->size();
+    const int scrollY = verticalScrollBar()->value();
 
-    QPair<int, int> range = m_layoutManager->computeVisibleRange(scrollY);
-    int start = range.first;
-    int end = range.second;
+    m_layoutManager->setViewportSize(viewSize);
+
+    if (viewSize.height() <= 0)
+        return;  // 防止尺寸未初始化导致 prepare 无效
+
+    qDebug() <<"check1 viewport width:" << viewSize.width();
+    // 设置 contentWidget 宽度
+    contentWidget->resize(viewSize.width(), contentWidget->height());
+
+    m_layoutManager->prepareLayoutIfNeeded(m_adapter, m_layoutManager->itemParent(), viewSize.height());
+
+    // 第二步：重新计算可视区域（这次才有数据）
+    auto [fst, snd] = m_layoutManager->computeVisibleRange(scrollY);
+    const int start = fst;
+    // int end = range.second;
+    // 追加一段使其可滑动 todo:追加的count应当由layoutmanager给出
+    const int end = std::min(snd + 5, m_adapter->getItemCount());
 
     qDebug() <<"updateVisibleItems: start" << start <<" end" <<end;
 
@@ -73,28 +86,39 @@ void RecyclerView::updateVisibleItems()
         }
     }
 
-    // 添加当前可见的 ViewHolder
-    for (int i = start; i <= end; ++i)
+    // 添加当前可见的，以及预加载的 ViewHolder
+    for (int i = start; i < end; i++)
     {
-        if (m_attachedViewHolders.contains(i))
+        if (m_attachedViewHolders.contains(i)) {
+            //todo make sure it's size
+            qDebug() << "should resize for:" <<i;
+            m_layoutManager->makesureLayout(i);
             continue;
+        }
 
         QString type = m_adapter->getItemViewType(i);
         ViewHolder* holder = m_cachePool.getRecycledView(type);
         if (!holder)
             holder = m_adapter->onCreateViewHolder(m_layoutManager->itemParent(), type);
 
-        m_adapter->onBindViewHolder(holder, i);
         m_attachedViewHolders[i] = holder;
         m_layoutManager->addViewHolder(holder, i);
+        m_adapter->onBindViewHolder(holder, i);
     }
-    qDebug() <<"check1 viewport height:" << viewport()->height() <<" " <<contentWidget->height();
+
+    qDebug() <<"check2 viewport height:" << viewport()->height() <<" " <<contentWidget->height();
     contentWidget->resize(viewport()->width(),contentWidget->height());
 
     m_layoutManager->layout(); // 更新内容尺寸
+    qDebug() <<"check3 viewport height:" << viewport()->height() <<" " <<contentWidget->height();
 
-    qDebug() <<"check2 viewport height:" << viewport()->height() <<" " <<contentWidget->height();
+    // // 触发 layout 更新内容区域高度
+    // m_layoutManager->layout();
+    //
+    // // 保证 contentWidget 的高度满足滚动需求
+    // contentWidget->resize(viewport()->width(), contentWidget->height());
 }
+
 
 void RecyclerView::recycleAllViews()
 {

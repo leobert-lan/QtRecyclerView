@@ -57,6 +57,8 @@ public:
      */
     virtual void layout() = 0;
     virtual void prepareLayoutIfNeeded(RecyclerAdapter<QVariant>* recycler_adapter, QWidget* widget, int height) = 0;
+
+    virtual void makesureLayout(const int& position) = 0;
 };
 
 #endif // ABSTRACTLAYOUTMANAGER_H
