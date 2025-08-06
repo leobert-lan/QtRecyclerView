@@ -2,11 +2,14 @@
 #include <QApplication>
 #include <QStringList>
 #include <QVBoxLayout>
+
+#include "GridLayoutManager.h"
 #include "RecyclerView.h"
 #include "qlabel.h"
 #include "LinearLayoutManager.h"
 #include "ViewHolder.h"
 #include "RecyclerAdapter.h"
+#include "GridLayoutManager.h"
 
 class MyAdapter : public RecyclerAdapter<QVariant> {
 public:
@@ -52,7 +55,8 @@ int main(int argc, char *argv[]) {
     }
 
     auto* adapter = new MyAdapter(items);
-    auto* layoutManager = new LinearLayoutManager;
+    // auto* layoutManager = new LinearLayoutManager;
+    auto* layoutManager = new GridLayoutManager(2,8);
 
     recyclerView->setAdapter(adapter);
     recyclerView->setLayoutManager(layoutManager);

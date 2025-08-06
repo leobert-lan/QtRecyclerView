@@ -61,7 +61,7 @@ void LinearLayoutManager::layout()
 {
     if (!container || m_itemRects.isEmpty()) return;
 
-    int totalHeight = m_itemRects.last().bottom() + spacing;
+    const int totalHeight = m_itemRects.last().bottom() + spacing;
     container->resize(container->width(), totalHeight);
 
     qDebug() << "[LinearLayoutManager] layout total height:" << totalHeight;
