@@ -1,7 +1,7 @@
 #include "LinearLayoutManager.h"
-#include <algorithm>
-
 #include "RecyclerAdapter.h"
+#include <QDebug>
+#include <QLayout>
 
 void LinearLayoutManager::addViewHolder(ViewHolder* holder, int position) {
     if (!container || !holder) return;
@@ -14,21 +14,21 @@ void LinearLayoutManager::addViewHolder(ViewHolder* holder, int position) {
     int height = size.height();
     int top = 0;
 
-    // 计算位置
     if (position > 0 && position - 1 < m_itemRects.size()) {
         const QRect& prevRect = m_itemRects[position - 1];
         top = prevRect.bottom() + spacing;
     }
 
     QRect rect(0, top, container->width(), height);
-
-    qDebug() << "addViewHolder for postion:" << position <<"rect:[" << 0<<","<<top<<","<<container->width()<<","<<height<<"]";
     if (position >= m_itemRects.size())
         m_itemRects.resize(position + 1);
-    m_itemRects[position] = rect;
 
+    m_itemRects[position] = rect;
     holder->setGeometry(rect);
+
     m_attachedViewHolders[position] = holder;
+
+    qDebug() << "addViewHolder at" << position << "rect:" << rect;
 }
 
 void LinearLayoutManager::removeViewHolder(ViewHolder* holder) {
@@ -53,7 +53,7 @@ void LinearLayoutManager::layout() {
     int totalHeight = m_itemRects.last().bottom() + spacing;
     container->resize(container->width(), totalHeight);
 
-    qDebug() <<"layout:" << totalHeight;
+    qDebug() << "[LinearLayoutManager] layout total height:" << totalHeight;
 }
 
 QPair<int, int> LinearLayoutManager::computeVisibleRange(int scrollY) {
@@ -79,28 +79,32 @@ QPair<int, int> LinearLayoutManager::computeVisibleRange(int scrollY) {
         end = i;
     }
 
-    qDebug() << "computeVisibleRange scrollY:" << scrollY <<" maxY:" << maxY <<" start:" <<start <<" end:" << end;
-
     return qMakePair(start, end);
 }
 
-void LinearLayoutManager::prepareLayoutIfNeeded(RecyclerAdapter<QVariant>* adapter, QWidget* itemParent, int viewportHeight)
-{
+void LinearLayoutManager::prepareLayoutIfNeeded(RecyclerAdapter<QVariant>* adapter, QWidget* itemParent, int viewportHeight) {
     if (!m_itemRects.isEmpty() || !adapter || viewportHeight <= 0) return;
 
     int y = 0;
     int count = adapter->getItemCount();
-    for (int i = 0; i < count && y < viewportHeight * 2; ++i) {  // 填满 2x 可视区
+
+    for (int i = 0; i < count && y < viewportHeight * 2; ++i) {
         QString type = adapter->getItemViewType(i);
         ViewHolder* vh = adapter->onCreateViewHolder(itemParent, type);
-        vh->hide();  // 不显示
+        vh->hide();  // 不加入 layout
         vh->setParent(itemParent);
         vh->bindData(adapter->getItem(i));
-        vh->resize(itemParent->width(), vh->sizeHint().height());
+        vh->resize(itemParent->width(), vh->height());  // 固定宽度以触发布局
+
+        if (vh->layout())
+            vh->layout()->activate();
+        vh->adjustSize();  // 强制计算 sizeHint
+
         int h = vh->sizeHint().height();
-        m_itemRects.append(QRect(0, y, itemParent->width(), h));
+        QRect rect(0, y, itemParent->width(), h);
+        m_itemRects.append(rect);
         y += h + spacing;
-        vh->deleteLater();  // 不加入布局，仅用于测量
+
+        delete vh;  // 不 deleteLater，立即释放
     }
 }
-

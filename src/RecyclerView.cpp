@@ -55,6 +55,8 @@ void RecyclerView::updateVisibleItems()
     int start = range.first;
     int end = range.second;
 
+    qDebug() <<"updateVisibleItems: start" << start <<" end" <<end;
+
     // 回收不在范围内的 ViewHolder
     QSet<int> visibleNow;
     for (int i = start; i <= end; ++i) visibleNow.insert(i);
