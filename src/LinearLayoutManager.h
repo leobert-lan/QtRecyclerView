@@ -34,6 +34,9 @@ public:
     void layout() override;
 
     void makesureLayout(const int& position) override;
+    QVector<QRect>& itemRects() override { return m_itemRects; }
+
+    int preloadCount() override;
 
 private:
     QSize m_viewportSize;

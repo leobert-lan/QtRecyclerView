@@ -83,6 +83,11 @@ void LinearLayoutManager::makesureLayout(const int& position)
     }
 }
 
+int LinearLayoutManager::preloadCount()
+{
+    return 5;
+}
+
 QPair<int, int> LinearLayoutManager::computeVisibleRange(int scrollY)
 {
     int start = 0;

@@ -1,11 +1,12 @@
 #pragma once
 #include <QScrollArea>
 #include <QMap>
-#include "AbstractLayoutManager.h"
 #include "RecyclerAdapter.h"
+#include "AbstractLayoutManager.h"
 #include "RecyclerCachePool.h"
+#include "RecyclerViewNotifier.h"
 
-class RecyclerView : public QScrollArea
+class RecyclerView : public QScrollArea, public RecyclerViewNotifier
 {
     Q_OBJECT
 
@@ -22,6 +23,11 @@ public:
 protected:
     void resizeEvent(QResizeEvent* event) override;
     void scrollContentsBy(int dx, int dy) override;
+
+    void notifyDataSetChanged() override;
+    void notifyItemInserted(int position) override;
+    void notifyItemRemoved(int position) override;
+    void notifyItemChanged(int position) override;
 
 private:
     QWidget* contentWidget;

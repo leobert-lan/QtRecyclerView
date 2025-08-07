@@ -7,7 +7,7 @@
 
 #include <QPair>
 #include <QSize>
-#include <RecyclerAdapter.h>
+#include "RecyclerAdapter.h"
 
 
 class ViewHolder;
@@ -59,6 +59,11 @@ public:
     virtual void prepareLayoutIfNeeded(RecyclerAdapter<QVariant>* recycler_adapter, QWidget* widget, int height) = 0;
 
     virtual void makesureLayout(const int& position) = 0;
+
+    virtual QVector<QRect>& itemRects() = 0;
+
+    /// 滑动过程中，提前预加载的 item 个数
+    virtual int preloadCount() = 0;
 };
 
 #endif // ABSTRACTLAYOUTMANAGER_H

@@ -35,6 +35,11 @@ public:
         holder->bindData(getItem(position));
     }
 
+    void updateData(const QStringList& newItems) {
+        m_items = newItems; // 更新内部数据集
+        notifyDataSetChanged(); // 触发刷新
+    }
+
 private:
     QStringList m_items;
 };
@@ -60,6 +65,14 @@ int main(int argc, char *argv[]) {
 
     recyclerView->setAdapter(adapter);
     recyclerView->setLayoutManager(layoutManager);
+
+    for (int i = 1; i <= 20; ++i) {
+        items << QString("append Item #%1").arg(i);
+    }
+
+    adapter->updateData(items);
+
+    qDebug()<<"count:"<<adapter->getItemCount();
 
     QVBoxLayout* layout = new QVBoxLayout(&mainWindow);
     layout->addWidget(recyclerView);

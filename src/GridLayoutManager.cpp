@@ -135,7 +135,7 @@ void GridLayoutManager::prepareLayoutIfNeeded(RecyclerAdapter<QVariant>* adapter
     if (!adapter || !itemParent || m_itemRects.size() >= adapter->getItemCount()) return;
 
     const int itemCount = adapter->getItemCount();
-    if (m_itemRects.isEmpty()) {
+    if (m_itemRects.size() != itemCount) {
         m_itemRects.resize(itemCount);
     }
 
@@ -218,4 +218,9 @@ void GridLayoutManager::makesureLayout(const int& position) {
     rect.setX(x);
     rect.setRect(x,y,cellWidth,height);
     holder->setGeometry(rect);
+}
+
+int GridLayoutManager::preloadCount()
+{
+    return 3*spanCount;
 }

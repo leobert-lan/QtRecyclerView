@@ -25,6 +25,8 @@ public:
     void layout() override;
     void prepareLayoutIfNeeded(RecyclerAdapter<QVariant>* adapter, QWidget* itemParent, int viewportHeight) override;
     void makesureLayout(const int& position) override;
+    QVector<QRect>& itemRects() override { return m_itemRects; }
+    int preloadCount() override;
 
 private:
     int spanCount;

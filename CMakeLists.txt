@@ -16,6 +16,7 @@ add_executable(QtRecyclerView
         src/AbstractLayoutManager.h
         src/LinearLayoutManager.cpp
         src/myviewholder.cpp
+        src/RecyclerViewNotifier.h
 )
 
 target_include_directories(QtRecyclerView PRIVATE src)
