@@ -67,7 +67,7 @@ void RecyclerView::updateVisibleItems()
     const int start = fst;
     // int end = range.second;
     // 追加一段使其可滑动
-    const int end = std::min(snd + m_layoutManager->preloadCount(), m_adapter->getItemCount());
+    const int end = std::min(snd + m_layoutManager->preloadCount(), m_adapter->getItemCount()-1);
 
     qDebug() <<"updateVisibleItems: start" << start <<" end" <<end;
 
@@ -88,7 +88,7 @@ void RecyclerView::updateVisibleItems()
     }
 
     // 添加当前可见的，以及预加载的 ViewHolder
-    for (int i = start; i < end; i++)
+    for (int i = start; i <= end; i++)
     {
         if (m_attachedViewHolders.contains(i)) {
             //todo make sure it's size
