@@ -9,7 +9,8 @@
 #include <QMap>
 #include <QRect>
 
-class GridLayoutManager : public AbstractLayoutManager {
+class GridLayoutManager : public AbstractLayoutManager
+{
 public:
     explicit GridLayoutManager(int spanCount = 2, int spacing = 8);
 
@@ -23,7 +24,13 @@ public:
     void addViewHolder(ViewHolder* holder, int position) override;
     void removeViewHolder(ViewHolder* holder) override;
     void layout() override;
-    void prepareLayoutIfNeeded(RecyclerAdapter<QVariant>* adapter, QWidget* itemParent, int viewportHeight) override;
+    void prepareLayoutIfNeeded(
+        RecyclerAdapter<QVariant>* adapter,
+        RecyclerCachePool* pool,
+        QWidget* itemParent,
+        int viewportHeight
+    ) override;
+    // void prepareLayoutIfNeeded(RecyclerAdapter<QVariant>* adapter, QWidget* itemParent, int viewportHeight) override;
     void makesureLayout(const int& position) override;
     QVector<QRect>& itemRects() override { return m_itemRects; }
     int preloadCount() override;
@@ -38,4 +45,3 @@ private:
 };
 
 #endif // GRIDLAYOUTMANAGER_H
-

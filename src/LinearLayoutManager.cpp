@@ -119,7 +119,9 @@ QPair<int, int> LinearLayoutManager::computeVisibleRange(int scrollY)
     return qMakePair(start, end);
 }
 
-void LinearLayoutManager::prepareLayoutIfNeeded(RecyclerAdapter<QVariant>* adapter, QWidget* itemParent, int viewportHeight)
+void LinearLayoutManager::prepareLayoutIfNeeded(RecyclerAdapter<QVariant>* adapter,
+                                                RecyclerCachePool* pool, QWidget* itemParent,
+                                                const int viewportHeight)
 {
     if (!m_itemRects.isEmpty() || !adapter || viewportHeight <= 0) return;
 
@@ -129,7 +131,12 @@ void LinearLayoutManager::prepareLayoutIfNeeded(RecyclerAdapter<QVariant>* adapt
     for (int i = 0; i < count && y < viewportHeight * 2; i++)
     {
         QString type = adapter->getItemViewType(i);
-        ViewHolder* vh = adapter->onCreateViewHolder(itemParent, type);
+        ViewHolder* vh = pool->getRecycledView(type);
+
+        if (vh == nullptr)
+        {
+            vh = adapter->onCreateViewHolder(itemParent, type);
+        }
 
         qDebug() << "in prepare vh index:" << i;
         vh->hide(); // 不加入 layout
@@ -145,7 +152,6 @@ void LinearLayoutManager::prepareLayoutIfNeeded(RecyclerAdapter<QVariant>* adapt
         QRect rect(0, y, itemParent->width(), h);
         m_itemRects.append(rect);
         y += h + spacing;
-
-        delete vh;
+        pool->putRecycledView(vh->viewType(), vh);
     }
 }

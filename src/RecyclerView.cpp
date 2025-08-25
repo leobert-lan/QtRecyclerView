@@ -54,22 +54,22 @@ void RecyclerView::updateVisibleItems()
     m_layoutManager->setViewportSize(viewSize);
 
     if (viewSize.height() <= 0)
-        return;  // 防止尺寸未初始化导致 prepare 无效
+        return; // 防止尺寸未初始化导致 prepare 无效
 
-    qDebug() <<"check1 viewport width:" << viewSize.width();
+    qDebug() << "check1 viewport width:" << viewSize.width();
     // 设置 contentWidget 宽度
     contentWidget->resize(viewSize.width(), contentWidget->height());
 
-    m_layoutManager->prepareLayoutIfNeeded(m_adapter, m_layoutManager->itemParent(), viewSize.height());
+    m_layoutManager->prepareLayoutIfNeeded(m_adapter, &m_cachePool, m_layoutManager->itemParent(), viewSize.height());
 
     // 第二步：重新计算可视区域（这次才有数据）
     auto [fst, snd] = m_layoutManager->computeVisibleRange(scrollY);
     const int start = fst;
     // int end = range.second;
     // 追加一段使其可滑动
-    const int end = std::min(snd + m_layoutManager->preloadCount(), m_adapter->getItemCount()-1);
+    const int end = std::min(snd + m_layoutManager->preloadCount(), m_adapter->getItemCount() - 1);
 
-    qDebug() <<"updateVisibleItems: start" << start <<" end" <<end;
+    qDebug() << "updateVisibleItems: start" << start << " end" << end;
 
     // 回收不在范围内的 ViewHolder
     QSet<int> visibleNow;
@@ -90,9 +90,10 @@ void RecyclerView::updateVisibleItems()
     // 添加当前可见的，以及预加载的 ViewHolder
     for (int i = start; i <= end; i++)
     {
-        if (m_attachedViewHolders.contains(i)) {
+        if (m_attachedViewHolders.contains(i))
+        {
             //todo make sure it's size
-            qDebug() << "should resize for:" <<i;
+            qDebug() << "should resize for:" << i;
             m_layoutManager->makesureLayout(i);
             continue;
         }
@@ -107,11 +108,11 @@ void RecyclerView::updateVisibleItems()
         m_adapter->onBindViewHolder(holder, i);
     }
 
-    qDebug() <<"check2 viewport height:" << viewport()->height() <<" " <<contentWidget->height();
-    contentWidget->resize(viewport()->width(),contentWidget->height());
+    qDebug() << "check2 viewport height:" << viewport()->height() << " " << contentWidget->height();
+    contentWidget->resize(viewport()->width(), contentWidget->height());
 
     m_layoutManager->layout(); // 更新内容尺寸
-    qDebug() <<"check3 viewport height:" << viewport()->height() <<" " <<contentWidget->height();
+    qDebug() << "check3 viewport height:" << viewport()->height() << " " << contentWidget->height();
 
     // // 触发 layout 更新内容区域高度
     // m_layoutManager->layout();
@@ -134,23 +135,28 @@ void RecyclerView::recycleAllViews()
     m_attachedViewHolders.clear();
 }
 
-void RecyclerView::notifyDataSetChanged() {
+void RecyclerView::notifyDataSetChanged()
+{
     if (!m_adapter || !m_layoutManager) return;
 
-    recycleAllViews();  // 回收全部 View
-    m_layoutManager->prepareLayoutIfNeeded(m_adapter, m_layoutManager->itemParent(), viewport()->height());
-    updateVisibleItems();  // 重建
+    recycleAllViews(); // 回收全部 View
+    m_layoutManager->prepareLayoutIfNeeded(m_adapter, &m_cachePool, m_layoutManager->itemParent(), viewport()->height());
+    updateVisibleItems(); // 重建
 }
 
-void RecyclerView::notifyItemInserted(int position) {
+void RecyclerView::notifyItemInserted(int position)
+{
     if (!m_adapter || !m_layoutManager) return;
 
     // 插入新的 itemRect 占位
     // shift 后续 rect
     auto& itemRects = m_layoutManager->itemRects();
-    if (position < itemRects.size()) {
+    if (position < itemRects.size())
+    {
         itemRects.insert(position, QRect());
-    } else {
+    }
+    else
+    {
         itemRects.resize(position + 1);
     }
 
@@ -158,15 +164,18 @@ void RecyclerView::notifyItemInserted(int position) {
     updateVisibleItems();
 }
 
-void RecyclerView::notifyItemRemoved(int position) {
+void RecyclerView::notifyItemRemoved(int position)
+{
     if (!m_adapter || !m_layoutManager) return;
 
     auto& itemRects = m_layoutManager->itemRects();
-    if (position < itemRects.size()) {
+    if (position < itemRects.size())
+    {
         itemRects.removeAt(position);
     }
 
-    if (ViewHolder* holder = m_attachedViewHolders.take(position)) {
+    if (ViewHolder* holder = m_attachedViewHolders.take(position))
+    {
         QString type = m_adapter->getItemViewType(position);
         m_cachePool.putRecycledView(type, holder);
         holder->setParent(nullptr);
@@ -176,10 +185,12 @@ void RecyclerView::notifyItemRemoved(int position) {
     updateVisibleItems();
 }
 
-void RecyclerView::notifyItemChanged(int position) {
+void RecyclerView::notifyItemChanged(int position)
+{
     if (!m_adapter || !m_layoutManager) return;
 
-    if (ViewHolder* holder = m_attachedViewHolders.value(position, nullptr)) {
+    if (ViewHolder* holder = m_attachedViewHolders.value(position, nullptr))
+    {
         m_adapter->onBindViewHolder(holder, position);
     }
 }

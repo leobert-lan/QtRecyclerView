@@ -4,25 +4,32 @@
 #include <cmath>
 
 GridLayoutManager::GridLayoutManager(int spanCount, int spacing)
-    : spanCount(spanCount), spacing(spacing) {}
+    : spanCount(spanCount), spacing(spacing)
+{
+}
 
-void GridLayoutManager::setSpanCount(int count) {
+void GridLayoutManager::setSpanCount(int count)
+{
     spanCount = std::max(1, count);
 }
 
-void GridLayoutManager::setViewportSize(const QSize& size) {
+void GridLayoutManager::setViewportSize(const QSize& size)
+{
     m_viewportSize = size;
 }
 
-void GridLayoutManager::setContainer(QWidget* widget) {
+void GridLayoutManager::setContainer(QWidget* widget)
+{
     m_container = widget;
 }
 
-QWidget* GridLayoutManager::itemParent() {
+QWidget* GridLayoutManager::itemParent()
+{
     return m_container;
 }
 
-void GridLayoutManager::addViewHolder(ViewHolder* holder, int position) {
+void GridLayoutManager::addViewHolder(ViewHolder* holder, int position)
+{
     if (!m_container || !holder || position < 0) return;
 
     holder->setParent(m_container);
@@ -39,10 +46,13 @@ void GridLayoutManager::addViewHolder(ViewHolder* holder, int position) {
 
     // 遍历前面几行，找到当前 row 的最大 Y 值（行高不固定）
     int y = spacing;
-    for (int r = 0; r < row; ++r) {
+    for (int r = 0; r < row; ++r)
+    {
         int maxHeightInRow = 0;
-        for (int c = 0; c < spanCount; ++c) {
-            if (const int index = r * spanCount + c; index < m_itemRects.size()) {
+        for (int c = 0; c < spanCount; ++c)
+        {
+            if (const int index = r * spanCount + c; index < m_itemRects.size())
+            {
                 maxHeightInRow = std::max(maxHeightInRow, m_itemRects[index].height());
             }
         }
@@ -65,25 +75,31 @@ void GridLayoutManager::addViewHolder(ViewHolder* holder, int position) {
 }
 
 
-
-void GridLayoutManager::removeViewHolder(ViewHolder* holder) {
+void GridLayoutManager::removeViewHolder(ViewHolder* holder)
+{
     if (!holder) return;
 
     holder->hide();
     holder->setParent(nullptr);
 
     auto it = m_attachedViewHolders.begin();
-    while (it != m_attachedViewHolders.end()) {
-        if (it.value() == holder) {
+    while (it != m_attachedViewHolders.end())
+    {
+        if (it.value() == holder)
+        {
             it = m_attachedViewHolders.erase(it);
-        } else {
+        }
+        else
+        {
             ++it;
         }
     }
 }
 
-QPair<int, int> GridLayoutManager::computeVisibleRange(const int scrollY) {
-    if (m_itemRects.isEmpty()) {
+QPair<int, int> GridLayoutManager::computeVisibleRange(const int scrollY)
+{
+    if (m_itemRects.isEmpty())
+    {
         return qMakePair(0, 0);
     }
 
@@ -94,21 +110,25 @@ QPair<int, int> GridLayoutManager::computeVisibleRange(const int scrollY) {
     int lastVisible = -1;
 
     // 线性遍历 m_itemRects，找到首尾可见项
-    for (int i = 0; i < m_itemRects.size(); ++i) {
+    for (int i = 0; i < m_itemRects.size(); ++i)
+    {
         // 判断item是否与视口垂直区域相交
 
-        if (const QRect& rect = m_itemRects[i]; !(rect.bottom() < viewportTop || rect.top() > viewportBottom)) {
+        if (const QRect& rect = m_itemRects[i]; !(rect.bottom() < viewportTop || rect.top() > viewportBottom))
+        {
             if (firstVisible == -1)
                 firstVisible = i;
             lastVisible = i;
         }
-        else if (firstVisible != -1 && rect.top() > viewportBottom) {
+        else if (firstVisible != -1 && rect.top() > viewportBottom)
+        {
             // 已找到最后可见项，提前终止循环
             break;
         }
     }
 
-    if (firstVisible == -1) {
+    if (firstVisible == -1)
+    {
         // 当前视口无任何可见项，可能在空白区域，返回合理空区间
         return qMakePair(0, 0);
     }
@@ -117,25 +137,30 @@ QPair<int, int> GridLayoutManager::computeVisibleRange(const int scrollY) {
 }
 
 
-void GridLayoutManager::layout() {
+void GridLayoutManager::layout()
+{
     if (!m_container || m_itemRects.isEmpty()) return;
 
     int totalHeight = 0;
-    for (auto m_itemRect : m_itemRects) {
+    for (auto m_itemRect : m_itemRects)
+    {
         totalHeight = std::max(totalHeight, m_itemRect.bottom());
     }
 
     totalHeight += spacing;
     m_container->resize(m_container->width(), totalHeight);
 
-    qDebug() << "[GridLayoutManager] layout total height:" << totalHeight << ",width:"<<m_container->width();
+    qDebug() << "[GridLayoutManager] layout total height:" << totalHeight << ",width:" << m_container->width();
 }
 
-void GridLayoutManager::prepareLayoutIfNeeded(RecyclerAdapter<QVariant>* adapter, QWidget* itemParent, int viewportHeight) {
+void GridLayoutManager::prepareLayoutIfNeeded(RecyclerAdapter<QVariant>* adapter, RecyclerCachePool* pool, QWidget* itemParent,
+                                              int viewportHeight)
+{
     if (!adapter || !itemParent || m_itemRects.size() >= adapter->getItemCount()) return;
 
     const int itemCount = adapter->getItemCount();
-    if (m_itemRects.size() != itemCount) {
+    if (m_itemRects.size() != itemCount)
+    {
         m_itemRects.resize(itemCount);
     }
 
@@ -145,26 +170,32 @@ void GridLayoutManager::prepareLayoutIfNeeded(RecyclerAdapter<QVariant>* adapter
 
     int maxColumnHeight = 0;
 
-    for (int i = 0; i < itemCount; ++i) {
-        if (m_itemRects[i].isValid()) {
+    for (int i = 0; i < itemCount; ++i)
+    {
+        if (m_itemRects[i].isValid())
+        {
             const int col = i % spanCount;
             columnHeights[col] = std::max(columnHeights[col], m_itemRects[i].bottom() + spacing);
             continue;
         }
 
         QString type = adapter->getItemViewType(i);
-        ViewHolder* vh = adapter->onCreateViewHolder(itemParent, type);
+        ViewHolder* vh = pool->getRecycledView(type);
+        if (!vh)
+        {
+            vh = adapter->onCreateViewHolder(itemParent, type);
+        }
         vh->hide();
         vh->setParent(itemParent);
         vh->bindData(adapter->getItem(i));
         vh->resize(cellWidth, vh->sizeHint().height());
 
         const int height = vh->sizeHint().height();
-        vh->deleteLater();
+        pool->putRecycledView(type, vh);
 
-        int column = i % spanCount;
-        int x = spacing + column * (cellWidth + spacing);
-        int y = columnHeights[column];
+        const int column = i % spanCount;
+        const int x = spacing + column * (cellWidth + spacing);
+        const int y = columnHeights[column];
 
         m_itemRects[i] = QRect(x, y, cellWidth, height);
         columnHeights[column] += height + spacing;
@@ -177,9 +208,8 @@ void GridLayoutManager::prepareLayoutIfNeeded(RecyclerAdapter<QVariant>* adapter
 }
 
 
-
-void GridLayoutManager::makesureLayout(const int& position) {
-
+void GridLayoutManager::makesureLayout(const int& position)
+{
     if (position >= m_itemRects.size())
     {
         qDebug() << "makesureLayout error, out of index, position:" << position << ", rects:" << m_itemRects.size();
@@ -202,10 +232,13 @@ void GridLayoutManager::makesureLayout(const int& position) {
 
     // 遍历前面几行，找到当前 row 的最大 Y 值（行高不固定）
     int y = spacing;
-    for (int r = 0; r < row; ++r) {
+    for (int r = 0; r < row; ++r)
+    {
         int maxHeightInRow = 0;
-        for (int c = 0; c < spanCount; ++c) {
-            if (const int index = r * spanCount + c; index < m_itemRects.size()) {
+        for (int c = 0; c < spanCount; ++c)
+        {
+            if (const int index = r * spanCount + c; index < m_itemRects.size())
+            {
                 maxHeightInRow = std::max(maxHeightInRow, m_itemRects[index].height());
             }
         }
@@ -216,11 +249,11 @@ void GridLayoutManager::makesureLayout(const int& position) {
     const int height = hintSize.height();
     auto rect = m_itemRects[position];
     rect.setX(x);
-    rect.setRect(x,y,cellWidth,height);
+    rect.setRect(x, y, cellWidth, height);
     holder->setGeometry(rect);
 }
 
 int GridLayoutManager::preloadCount()
 {
-    return 3*spanCount;
+    return 3 * spanCount;
 }

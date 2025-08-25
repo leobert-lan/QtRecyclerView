@@ -8,6 +8,7 @@
 #include <QPair>
 #include <QSize>
 #include "RecyclerAdapter.h"
+#include "RecyclerCachePool.h"
 
 
 class ViewHolder;
@@ -56,7 +57,12 @@ public:
      * @brief 根据当前状态重新布局所有元素（可更新 container 尺寸）
      */
     virtual void layout() = 0;
-    virtual void prepareLayoutIfNeeded(RecyclerAdapter<QVariant>* recycler_adapter, QWidget* widget, int height) = 0;
+    virtual void prepareLayoutIfNeeded(
+        RecyclerAdapter<QVariant>* adapter,
+        RecyclerCachePool* pool,
+        QWidget* itemParent,
+        int viewportHeight
+    ) = 0;
 
     virtual void makesureLayout(const int& position) = 0;
 

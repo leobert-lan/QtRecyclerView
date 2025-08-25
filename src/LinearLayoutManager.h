@@ -1,9 +1,5 @@
 #pragma once
 
-#include <QMap>
-#include <QRect>
-#include <QSize>
-#include <QVector>
 #include "AbstractLayoutManager.h"
 #include "RecyclerAdapter.h"
 #include "ViewHolder.h"
@@ -11,10 +7,11 @@
 /**
  * @brief 垂直线性布局管理器（仿 Android LinearLayoutManager）
  */
-class LinearLayoutManager : public AbstractLayoutManager {
+class LinearLayoutManager : public AbstractLayoutManager
+{
 public:
-    explicit LinearLayoutManager()
-        : container(nullptr)
+    explicit LinearLayoutManager(const int spacing_ = 0)
+        : container(nullptr), spacing(spacing_)
     {
     }
 
@@ -25,7 +22,13 @@ public:
     QWidget* itemParent() override { return container; }
 
     QPair<int, int> computeVisibleRange(int scrollY) override;
-    void prepareLayoutIfNeeded(RecyclerAdapter<QVariant>* adapter, QWidget* itemParent, int viewportHeight) override;
+
+    void prepareLayoutIfNeeded(
+        RecyclerAdapter<QVariant>* adapter,
+        RecyclerCachePool* pool,
+        QWidget* itemParent,
+        int viewportHeight
+    ) override;
 
     void addViewHolder(ViewHolder* holder, int position) override;
 
@@ -45,5 +48,5 @@ private:
     QMap<int, ViewHolder*> m_attachedViewHolders;
     QVector<QRect> m_itemRects;
 
-    int spacing = 8;
+    int spacing = 0;
 };
